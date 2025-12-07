@@ -16,14 +16,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
     return lines.map((line, i) => {
       const isListItem = /^\s*[\*\-]\s/.test(line);
       const cleanLine = isListItem ? line.replace(/^\s*[\*\-]\s/, '') : line;
-      
+
       const parts = cleanLine.split(/(\*\*.*?\*\*|\*(?=\S)(?:.*?\S)?\*)/g);
-      
+
       const formattedParts = parts.map((part, j) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-           return <strong key={j} className="font-bold text-inherit">{part.slice(2, -2)}</strong>;
+          return <strong key={j} className="font-bold text-inherit">{part.slice(2, -2)}</strong>;
         } else if (part.startsWith('*') && part.endsWith('*') && part.length > 1) {
-           return <em key={j} className="italic text-inherit">{part.slice(1, -1)}</em>;
+          return <em key={j} className="italic text-inherit">{part.slice(1, -1)}</em>;
         }
         return part;
       });
@@ -48,27 +48,33 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
   return (
     <div className={`flex w-full ${isBot ? 'justify-start' : 'justify-end'} animate-fade-in-up group`}>
       <div className={`flex max-w-[85%] flex-col ${isBot ? 'items-start' : 'items-end'}`}>
-        
+
         <div className={`flex ${isBot ? 'flex-row' : 'flex-row-reverse'} items-end gap-2.5`}>
           {/* Avatar */}
-          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm mb-1 transition-transform group-hover:scale-110 ${
-            isBot 
-              ? 'bg-gradient-to-br from-white to-gray-50 border border-gray-100 text-sky-600' 
+          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm mb-1 transition-transform group-hover:scale-110 ${isBot
+              ? 'bg-gradient-to-br from-white to-gray-50 border border-gray-100 text-sky-600'
               : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-600'
-          }`}>
+            }`}>
             {isBot ? <Bot size={18} strokeWidth={2.5} /> : <User size={18} strokeWidth={2.5} />}
           </div>
 
           {/* Message Bubble */}
-          <div className={`relative px-5 py-4 shadow-sm text-[15px] ${
-            isBot
+          <div className={`relative px-5 py-4 shadow-sm text-[15px] ${isBot
               ? 'bg-white text-gray-800 rounded-2xl rounded-bl-none border border-gray-100'
               : 'bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl rounded-br-none shadow-md shadow-sky-500/20'
-          }`}>
+            }`}>
             <div className="flex flex-col gap-0.5">
-              {renderFormattedText(message.text)}
+              {!message.text && isBot ? (
+                <div className="flex gap-1 items-center py-2 px-1">
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                </div>
+              ) : (
+                renderFormattedText(message.text)
+              )}
             </div>
-            
+
             {/* Sources Display */}
             {message.sources && message.sources.length > 0 && (
               <div className="mt-4 pt-3 border-t border-gray-100/50">
@@ -78,7 +84,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {message.sources.map((source, idx) => (
-                    <a 
+                    <a
                       key={idx}
                       href={source.url}
                       target="_blank"
