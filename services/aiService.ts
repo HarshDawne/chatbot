@@ -11,7 +11,7 @@ const ai = new OpenAI({
 export const sendMessageStream = async (message: string) => {
     try {
         const stream = await ai.chat.completions.create({
-            model: 'alibaba/tongyi-deepresearch-30b-a3b',
+            model: 'meta-llama/llama-3.3-70b-instruct',
             messages: [
                 { role: 'system', content: SYSTEM_INSTRUCTION },
                 { role: 'user', content: message }
