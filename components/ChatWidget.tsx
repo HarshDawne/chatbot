@@ -32,12 +32,17 @@ const ChatWidget: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState(LOADING_STATUSES[0]);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
 
   useEffect(() => {
@@ -118,27 +123,27 @@ const ChatWidget: React.FC = () => {
         const groundingChunks = c.candidates?.[0]?.groundingMetadata?.groundingChunks;
         if (groundingChunks) {
           groundingChunks.forEach((gChunk: any) => {
-             if (gChunk.web?.uri) {
-                uniqueSources.set(gChunk.web.uri, gChunk.web.title || 'Web Source');
-             }
+            if (gChunk.web?.uri) {
+              uniqueSources.set(gChunk.web.uri, gChunk.web.title || 'Web Source');
+            }
           });
         }
 
         const sourcesArray = Array.from(uniqueSources.entries()).map(([url, title]) => ({ title, url }));
         const [mainText, suggestionsRaw] = accumulatedText.split(SUGGESTION_SEPARATOR);
-        
-        const suggestions = suggestionsRaw 
+
+        const suggestions = suggestionsRaw
           ? suggestionsRaw.split('\n').map(s => s.trim()).filter(s => s.length > 0)
           : undefined;
 
         setMessages(prev => prev.map(msg =>
           msg.id === botMessageId
-            ? { 
-                ...msg, 
-                text: mainText.trim(),
-                sources: sourcesArray.length > 0 ? sourcesArray : undefined,
-                suggestions: suggestions
-              }
+            ? {
+              ...msg,
+              text: mainText.trim(),
+              sources: sourcesArray.length > 0 ? sourcesArray : undefined,
+              suggestions: suggestions
+            }
             : msg
         ));
       }
@@ -195,11 +200,11 @@ const ChatWidget: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide bg-gradient-to-b from-gray-50 to-white">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide bg-gradient-to-b from-gray-50 to-white">
         {messages.map((msg) => (
-          <ChatMessage 
-            key={msg.id} 
-            message={msg} 
+          <ChatMessage
+            key={msg.id}
+            message={msg}
             onSuggestionClick={handleSuggestionClick}
           />
         ))}
@@ -213,7 +218,7 @@ const ChatWidget: React.FC = () => {
             <span className="text-xs text-gray-400 font-medium animate-pulse">{loadingText}</span>
           </div>
         )}
-        <div ref={messagesEndRef} />
+
       </div>
 
       {/* Input */}
@@ -231,11 +236,10 @@ const ChatWidget: React.FC = () => {
           <button
             type="submit"
             disabled={!inputText.trim() || isLoading}
-            className={`absolute right-2 top-2 bottom-2 aspect-square rounded-xl flex items-center justify-center transition-all duration-300 ${
-              !inputText.trim() || isLoading
+            className={`absolute right-2 top-2 bottom-2 aspect-square rounded-xl flex items-center justify-center transition-all duration-300 ${!inputText.trim() || isLoading
                 ? 'text-gray-400 bg-transparent'
                 : 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg hover:shadow-sky-500/30 hover:scale-105 transform'
-            }`}
+              }`}
           >
             {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className={inputText.trim() ? "ml-0.5" : ""} />}
           </button>
