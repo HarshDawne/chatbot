@@ -1,0 +1,5 @@
+{
+  "name": "EstateAI Assistant",
+  "description": "A sophisticated real estate application featuring an AI-powered chatbot using Gemini 1.5 Pro to assist users with property inquiries.",
+  "requestFramePermissions": []
+}
