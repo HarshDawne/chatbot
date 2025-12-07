@@ -2,9 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Sparkles, Trash2, Bot, ChevronRight } from 'lucide-react';
 import { Message, Sender } from '../types';
-import { sendMessageStream, resetChatSession } from '../services/geminiService';
+import { sendMessageStream, resetChatSession } from '../services/aiService';
 import ChatMessage from './ChatMessage';
-import { GenerateContentResponse } from '@google/genai';
 
 const LOADING_STATUSES = [
   "Analyzing request...",
@@ -113,23 +112,11 @@ const ChatWidget: React.FC = () => {
       const streamResult = await sendMessageStream(textToSend);
 
       let accumulatedText = '';
-      const uniqueSources = new Map<string, string>();
 
       for await (const chunk of streamResult) {
-        const c = chunk as GenerateContentResponse;
-        const textChunk = c.text || '';
+        const textChunk = chunk.choices[0]?.delta?.content || '';
         accumulatedText += textChunk;
 
-        const groundingChunks = c.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        if (groundingChunks) {
-          groundingChunks.forEach((gChunk: any) => {
-            if (gChunk.web?.uri) {
-              uniqueSources.set(gChunk.web.uri, gChunk.web.title || 'Web Source');
-            }
-          });
-        }
-
-        const sourcesArray = Array.from(uniqueSources.entries()).map(([url, title]) => ({ title, url }));
         const [mainText, suggestionsRaw] = accumulatedText.split(SUGGESTION_SEPARATOR);
 
         const suggestions = suggestionsRaw
@@ -141,7 +128,6 @@ const ChatWidget: React.FC = () => {
             ? {
               ...msg,
               text: mainText.trim(),
-              sources: sourcesArray.length > 0 ? sourcesArray : undefined,
               suggestions: suggestions
             }
             : msg
@@ -237,8 +223,8 @@ const ChatWidget: React.FC = () => {
             type="submit"
             disabled={!inputText.trim() || isLoading}
             className={`absolute right-2 top-2 bottom-2 aspect-square rounded-xl flex items-center justify-center transition-all duration-300 ${!inputText.trim() || isLoading
-                ? 'text-gray-400 bg-transparent'
-                : 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg hover:shadow-sky-500/30 hover:scale-105 transform'
+              ? 'text-gray-400 bg-transparent'
+              : 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg hover:shadow-sky-500/30 hover:scale-105 transform'
               }`}
           >
             {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className={inputText.trim() ? "ml-0.5" : ""} />}
